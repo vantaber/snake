@@ -3,10 +3,10 @@ import random
 
 pygame.init()
 
-WIDTH, HEIGHT = 600, 400
-CELL_SIZE = 10
+WIDTH, HEIGHT = 800, 800
+CELL_SIZE = 20
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Змейка 🐍")
+pygame.display.set_caption("Змеюга 3")
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -14,7 +14,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
 
-snake = [(100, 100), (80, 100)]
+snake = [(400, 400), (380, 400), (360, 400)]
 direction = (CELL_SIZE, 0)
 food = (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE))
 score = 0
@@ -72,6 +72,6 @@ while running:
     show_score()
 
     pygame.display.flip()
-    clock.tick(1)
+    clock.tick(10)
 
 pygame.quit()

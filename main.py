@@ -8,15 +8,35 @@ CELL_SIZE = 20
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Змеюга 3")
 
+background = pygame.image.load("background.png")
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
-RED = (255, 0, 0)
 
+food_sprites = [
+    {"image": pygame.image.load("apple.png"), "chance": 0.6},
+    {"image": pygame.image.load("banana.png"), "chance": 0.3},
+    {"image": pygame.image.load("strawberry.png"), "chance": 0.1}
+]
+
+for food in food_sprites:
+    food["image"] = pygame.transform.scale(food["image"], (CELL_SIZE, CELL_SIZE))
+
+def get_random_food():
+    rand = random.random()
+    cumulative = 0
+    for food in food_sprites:
+        cumulative += food["chance"]
+        if rand <= cumulative:
+            return food
+    return food_sprites[0]
 
 snake = [(400, 400), (380, 400), (360, 400)]
 direction = (CELL_SIZE, 0)
-food = (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE))
+
+food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
 score = 0
 
 font = pygame.font.Font(None, 30)
@@ -26,7 +46,7 @@ def draw_snake():
         pygame.draw.rect(screen, GREEN, (*segment, CELL_SIZE, CELL_SIZE))
 
 def draw_food():
-    pygame.draw.rect(screen, RED, (*food, CELL_SIZE, CELL_SIZE))
+    screen.blit(food["type"]["image"], food["pos"])
 
 def show_score():
     text = font.render(f"Очки: {score}", True, WHITE)
@@ -36,7 +56,7 @@ clock = pygame.time.Clock()
 running = True
 
 while running:
-    screen.fill(BLACK)
+    screen.blit(background, (0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -61,8 +81,8 @@ while running:
 
     snake.insert(0, new_head)
 
-    if new_head == food:
-        food = (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE))
+    if new_head == food["pos"]:
+        food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
         score += 1
     else:
         snake.pop()

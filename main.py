@@ -13,7 +13,14 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
+COLOR_START = (112, 10, 171)
+COLOR_END = (225, 180, 251)
+def interpolate_color(start_color, end_color, factor):
+    return (
+        int(start_color[0] + (end_color[0] - start_color[0]) * factor),
+        int(start_color[1] + (end_color[1] - start_color[1]) * factor),
+        int(start_color[2] + (end_color[2] - start_color[2]) * factor)
+    )
 
 food_sprites = [
     {"image": pygame.image.load("apple.png"), "chance": 0.6, "points": 1},
@@ -41,7 +48,7 @@ score = 0
 
 font = pygame.font.Font(None, 30)
 
-def draw_tail(tail_pos, tail_direction):
+def draw_tail(tail_pos, tail_direction, color):
     x, y = tail_pos
     if tail_direction == (CELL_SIZE, 0):  # Вправо
         points = [(x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), (x, y + CELL_SIZE // 2)]
@@ -52,34 +59,39 @@ def draw_tail(tail_pos, tail_direction):
     elif tail_direction == (0, -CELL_SIZE):  # Вверх
         points = [(x, y), (x + CELL_SIZE, y), (x + CELL_SIZE // 2, y + CELL_SIZE)]
 
-    pygame.draw.polygon(screen, GREEN, points)
+    pygame.draw.polygon(screen, color, points)
 
 
 # Функция отрисовки змейки с полукруглой головой и треугольным хвостом
 def draw_snake():
+    length = len(snake)
+
     for i, segment in enumerate(snake):
+        color_factor = i / (length - 1) if length > 1 else 0
+        segment_color = interpolate_color(COLOR_START, COLOR_END, color_factor)
+
         if i == 0:  # Голова змейки (полукруг)
             head_x, head_y = segment
             rect = pygame.Rect(head_x, head_y, CELL_SIZE, CELL_SIZE)
 
             if direction == (CELL_SIZE, 0):  # Движение вправо
-                pygame.draw.circle(screen, GREEN, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
-                pygame.draw.rect(screen, GREEN, (head_x, head_y, CELL_SIZE//2, CELL_SIZE))
+                pygame.draw.circle(screen, segment_color, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
+                pygame.draw.rect(screen, segment_color, (head_x, head_y, CELL_SIZE//2, CELL_SIZE))
             elif direction == (-CELL_SIZE, 0):  # Движение влево
-                pygame.draw.circle(screen, GREEN, (head_x + CELL_SIZE // 2, head_y + CELL_SIZE // 2), CELL_SIZE // 2)
-                pygame.draw.rect(screen, GREEN, (head_x + CELL_SIZE // 2, head_y, CELL_SIZE // 2, CELL_SIZE))
+                pygame.draw.circle(screen, segment_color, (head_x + CELL_SIZE // 2, head_y + CELL_SIZE // 2), CELL_SIZE // 2)
+                pygame.draw.rect(screen, segment_color, (head_x + CELL_SIZE // 2, head_y, CELL_SIZE // 2, CELL_SIZE))
             elif direction == (0, CELL_SIZE):  # Движение вниз
-                pygame.draw.circle(screen, GREEN, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
-                pygame.draw.rect(screen, GREEN, (head_x, head_y, CELL_SIZE, CELL_SIZE//2))
+                pygame.draw.circle(screen, segment_color, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
+                pygame.draw.rect(screen, segment_color, (head_x, head_y, CELL_SIZE, CELL_SIZE//2))
             elif direction == (0, -CELL_SIZE):  # Движение вверх
-                pygame.draw.circle(screen, GREEN, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
-                pygame.draw.rect(screen, GREEN, (head_x, head_y + CELL_SIZE//2, CELL_SIZE, CELL_SIZE//2))
+                pygame.draw.circle(screen, segment_color, (head_x + CELL_SIZE//2, head_y + CELL_SIZE//2), CELL_SIZE//2)
+                pygame.draw.rect(screen, segment_color, (head_x, head_y + CELL_SIZE//2, CELL_SIZE, CELL_SIZE//2))
 
         elif i == len(snake) - 1:  # Хвост змейки (треугольник)
-            draw_tail(segment, (snake[-2][0] - segment[0], snake[-2][1] - segment[1]))
+            draw_tail(segment, (snake[-2][0] - segment[0], snake[-2][1] - segment[1]), segment_color)
 
         else:  # Обычные сегменты тела
-            pygame.draw.rect(screen, GREEN, (*segment, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(screen, segment_color, (*segment, CELL_SIZE, CELL_SIZE))
 
 def draw_food():
     screen.blit(food["type"]["image"], food["pos"])

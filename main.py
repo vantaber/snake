@@ -16,9 +16,9 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 
 food_sprites = [
-    {"image": pygame.image.load("apple.png"), "chance": 0.6},
-    {"image": pygame.image.load("banana.png"), "chance": 0.3},
-    {"image": pygame.image.load("strawberry.png"), "chance": 0.1}
+    {"image": pygame.image.load("apple.png"), "chance": 0.6, "points": 1},
+    {"image": pygame.image.load("banana.png"), "chance": 0.3, "points": 5},
+    {"image": pygame.image.load("strawberry.png"), "chance": 0.1, "points": 10}
 ]
 
 for food in food_sprites:
@@ -26,12 +26,12 @@ for food in food_sprites:
 
 def get_random_food():
     rand = random.random()
-    cumulative = 0
-    for food in food_sprites:
-        cumulative += food["chance"]
-        if rand <= cumulative:
-            return food
-    return food_sprites[0]
+    count = 0
+    chance = food_sprites[count]["chance"]
+    while rand > chance:
+        count += 1
+        chance += food_sprites[count]["chance"]
+    return food_sprites[count]
 
 snake = [(400, 400), (380, 400), (360, 400)]
 direction = (CELL_SIZE, 0)
@@ -82,8 +82,8 @@ while running:
     snake.insert(0, new_head)
 
     if new_head == food["pos"]:
+        score += food["type"]["points"]
         food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
-        score += 1
     else:
         snake.pop()
 

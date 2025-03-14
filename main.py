@@ -41,12 +41,19 @@ def get_random_food():
     return food_sprites[count]
 
 snake = [(400, 400), (380, 400), (360, 400)]
+len_for_speed = 3
 direction = (CELL_SIZE, 0)
 
 food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
 score = 0
 
 font = pygame.font.Font(None, 30)
+
+SNAKE_SPEED = 200
+last_move_time = pygame.time.get_ticks()
+
+last_key_time = pygame.time.get_ticks()
+KEY_DELAY = SNAKE_SPEED
 
 def draw_tail(tail_pos, tail_direction, color):
     x, y = tail_pos
@@ -60,6 +67,13 @@ def draw_tail(tail_pos, tail_direction, color):
         points = [(x, y), (x + CELL_SIZE, y), (x + CELL_SIZE // 2, y + CELL_SIZE)]
 
     pygame.draw.polygon(screen, color, points)
+
+def speed_game():
+    global SNAKE_SPEED, len_for_speed, KEY_DELAY
+    if len(snake) == len_for_speed + 5:
+        len_for_speed += 5
+        SNAKE_SPEED = int(SNAKE_SPEED * 0.9)
+        KEY_DELAY = SNAKE_SPEED
 
 
 # Функция отрисовки змейки с полукруглой головой и треугольным хвостом
@@ -106,40 +120,52 @@ running = True
 while running:
     screen.blit(background, (0, 0))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    current_time = pygame.time.get_ticks()
+    if current_time - last_move_time > SNAKE_SPEED:
+        last_move_time = current_time
+
+        new_head = (snake[0][0] + direction[0], snake[0][1] + direction[1])
+
+        if new_head[0] < 0 or new_head[0] >= WIDTH or new_head[1] < 0 or new_head[1] >= HEIGHT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and direction != (0, CELL_SIZE):
-                direction = (0, -CELL_SIZE)
-            elif event.key == pygame.K_DOWN and direction != (0, -CELL_SIZE):
-                direction = (0, CELL_SIZE)
-            elif event.key == pygame.K_LEFT and direction != (CELL_SIZE, 0):
-                direction = (-CELL_SIZE, 0)
-            elif event.key == pygame.K_RIGHT and direction != (-CELL_SIZE, 0):
-                direction = (CELL_SIZE, 0)
 
-    new_head = (snake[0][0] + direction[0], snake[0][1] + direction[1])
+        if new_head in snake:
+            running = False
 
-    if new_head[0] < 0 or new_head[0] >= WIDTH or new_head[1] < 0 or new_head[1] >= HEIGHT:
-        running = False
+        snake.insert(0, new_head)
 
-    if new_head in snake:
-        running = False
+        if new_head == food["pos"]:
+            score += food["type"]["points"]
+            food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
+        else:
+            snake.pop()
 
-    snake.insert(0, new_head)
 
-    if new_head == food["pos"]:
-        score += food["type"]["points"]
-        food = {"pos": (random.randrange(0, WIDTH, CELL_SIZE), random.randrange(0, HEIGHT, CELL_SIZE)), "type": get_random_food()}
-    else:
-        snake.pop()
+    current_key_time = pygame.time.get_ticks()
+    if current_key_time - last_key_time > KEY_DELAY:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP and direction != (0, CELL_SIZE):
+                    direction = (0, -CELL_SIZE)
+                    last_key_time = current_key_time
+                elif event.key == pygame.K_DOWN and direction != (0, -CELL_SIZE):
+                    direction = (0, CELL_SIZE)
+                    last_key_time = current_key_time
+                elif event.key == pygame.K_LEFT and direction != (CELL_SIZE, 0):
+                    direction = (-CELL_SIZE, 0)
+                    last_key_time = current_key_time
+                elif event.key == pygame.K_RIGHT and direction != (-CELL_SIZE, 0):
+                    direction = (CELL_SIZE, 0)
+                    last_key_time = current_key_time
 
     draw_snake()
     draw_food()
     show_score()
+    speed_game()
 
     pygame.display.flip()
-    clock.tick(10)
+    clock.tick(144)
 
 pygame.quit()

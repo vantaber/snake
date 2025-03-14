@@ -102,7 +102,22 @@ def draw_snake():
                 pygame.draw.rect(screen, segment_color, (head_x, head_y + CELL_SIZE//2, CELL_SIZE, CELL_SIZE//2))
 
         elif i == len(snake) - 1:  # Хвост змейки (треугольник)
-            draw_tail(segment, (snake[-2][0] - segment[0], snake[-2][1] - segment[1]), segment_color)
+            dx = (snake[-2][0] - snake[-1][0]) % WIDTH
+            dy = (snake[-2][1] - snake[-1][1]) % HEIGHT
+
+            if dx == CELL_SIZE and dy == 0:
+                tail_direction = (CELL_SIZE, 0)
+            elif dx == WIDTH - CELL_SIZE and dy == 0:
+                tail_direction = (-CELL_SIZE, 0)
+            elif dx == 0 and dy == CELL_SIZE:
+                tail_direction = (0, CELL_SIZE)
+            elif dx == 0 and dy == HEIGHT - CELL_SIZE:
+                tail_direction = (0, -CELL_SIZE)
+            else:
+                print("Ошибка: tail_direction не определен", dx, dy)
+                tail_direction = (CELL_SIZE, 0)
+
+            draw_tail(segment, tail_direction, segment_color)
 
         else:  # Обычные сегменты тела
             pygame.draw.rect(screen, segment_color, (*segment, CELL_SIZE, CELL_SIZE))
@@ -124,10 +139,10 @@ while running:
     if current_time - last_move_time > SNAKE_SPEED:
         last_move_time = current_time
 
-        new_head = (snake[0][0] + direction[0], snake[0][1] + direction[1])
-
-        if new_head[0] < 0 or new_head[0] >= WIDTH or new_head[1] < 0 or new_head[1] >= HEIGHT:
-            running = False
+        new_head = (
+            (snake[0][0] + direction[0]) % WIDTH,
+            (snake[0][1] + direction[1]) % HEIGHT
+        )
 
         if new_head in snake:
             running = False
